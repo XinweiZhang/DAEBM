@@ -41,11 +41,6 @@ def main(args):
     os.makedirs(os.path.join(exp_dir, "Time0Images"))
     os.makedirs(os.path.join(exp_dir, "Time0ImagesSim"))
 
-    # if pexp_dir is not None:
-    #     with open(pexp_dir + '/hparams.json', 'r') as myfile:
-    #         data = myfile.read()
-    #         hparams = json.loads(data)
-
     logging.basicConfig(
         format='%(name)s - %(levelname)s - %(message)s',
         level=logging.INFO,
@@ -254,8 +249,6 @@ if __name__ == "__main__":
     add_parser = add_daebm_parser()
     parser = argparse.ArgumentParser(parents=[cli_parser, add_parser], add_help=False)
 
-    # args = parser.parse_args("--main_dir ./fashionmnist/ --pexp_dir experiments/cnn_DAEBM/exp1".split())
-
     if args.help_more:
         parser.print_help()
 
@@ -267,8 +260,6 @@ if __name__ == "__main__":
             hparams = json.loads(data)
 
         parser.set_defaults(**hparams)
-
-        # args = parser.parse_args("--main_dir ./fashionmnist --pexp_dir experiments/cnn_DAEBM/exp1 --cuda 0".split())
 
         args = parser.parse_args()
 
