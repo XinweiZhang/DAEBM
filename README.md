@@ -14,6 +14,7 @@ pip install -r requirements.txt
 ### Image experiments on MNIST and FashionMNIST
 Set `--main_dir` to be `./mnist` or `./fashionmnist` to conduct experiments on **MNIST** or **FashionMNIST**. Datasets will be automatically downloaded. The following commands are examples to run differeent methods on **MNIST**.
 #### DAEBM
+##### Training
 ```angular2
 python src/train-DAEBM.py --main_dir ./mnist --exp_dir experiments/cnn_DAEBM/exp1 --lr 1e-5  \
                   --betas 0.0 0.999 --optimizer_type adam --batch_size 200 --n_epochs 200 \
@@ -24,6 +25,12 @@ python src/train-DAEBM.py --main_dir ./mnist --exp_dir experiments/cnn_DAEBM/exp
                   --dynamic_sampling --init_step_size_values 0.01 --start_reject_epochs 10 \
                   --num_diffusion_timesteps 50 --diffusion_schedule sqrtcumlinear --diffusion_betas 2e-4 2e-2 \
                   --save_all_annealed_models --cuda 0
+```
+##### Post-sampling
+Start 100 chains in parallel and run 10000 MGMS traisitions. The number of Langevin steps within a MGMS transition is the same as in training.
+```
+python src/post-sampling.py --main_dir ./mnist --pexp_dir experiments/cnn_DAEBM/exp1 --sampling_chains 100 \
+        --total_iters 100000 --stop_a_chain_M 50 --print_freq 500 --cuda 0
 ```
 
 #### EBM

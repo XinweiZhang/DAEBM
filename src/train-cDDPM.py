@@ -216,7 +216,7 @@ def main(args):
     )
 
     time0_bank = torch.randn((50000,) + args.image_shape)
-    fid_save_sample_idx = 0
+    time0_save_sample_idx = 0
 
     if "mnist" in args.main_dir:
         demo_data = torch.nn.functional.pad(rep_imgs, (2, 2, 2, 2), "constant", -1)
@@ -358,20 +358,20 @@ def main(args):
                 writer.add_scalar("Train/lr", optimizer.param_groups[0]["lr"], epoch)
 
                 samples, n = sampling_fn(net)
-                fid_samples = samples.cpu()
+                time0_samples = samples.cpu()
                 fid_slice = slice(
-                    fid_save_sample_idx % time0_bank.shape[0],
+                    time0_save_sample_idx % time0_bank.shape[0],
                     min(
                         time0_bank.shape[0],
-                        (fid_save_sample_idx + fid_samples.shape[0])
+                        (time0_save_sample_idx + time0_samples.shape[0])
                         % time0_bank.shape[0],
                     ),
                 )
-                fid_save_sample_idx += fid_samples.shape[0]
-                time0_bank[fid_slice] = fid_samples[: (fid_slice.stop - fid_slice.start)]
+                time0_save_sample_idx += time0_samples.shape[0]
+                time0_bank[fid_slice] = time0_samples[: (fid_slice.stop - fid_slice.start)]
 
                 figure = make_figure_grid(
-                    fid_samples, nrow=10, ncol=10, figsize=(8, 8), show=False,
+                    time0_samples, nrow=10, ncol=10, figsize=(8, 8), show=False,
                 )
                 writer.add_figure("Replay Buffer", figure, global_step=epoch)
 

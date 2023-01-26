@@ -188,7 +188,7 @@ def main(args):
     "Ancillary"
     n_iter = 0
     time0_bank = torch.randn((50000,) + args.image_shape)  # Store Time 0 images
-    fid_save_sample_idx = 0
+    time0_save_sample_idx = 0
 
     accumulators = {}
     accumulators["mala_acpt_rate"] = Accumulator(args.num_diffusion_timesteps + 1)
@@ -257,22 +257,22 @@ def main(args):
             image_samples = x_t_neg.cpu()
             image_labels = t_neg.cpu()
 
-            fid_samples_idx = image_labels == 0
-            fid_samples = image_samples[fid_samples_idx]
+            time0_samples_idx = image_labels == 0
+            time0_samples = image_samples[time0_samples_idx]
 
             if replay_buffer.buffer_size is not None:
                 replay_buffer.update_buffer(buffer_idx, image_samples, image_labels)
 
             fid_slice = slice(
-                fid_save_sample_idx % time0_bank.shape[0],
+                time0_save_sample_idx % time0_bank.shape[0],
                 min(
                     time0_bank.shape[0],
-                    (fid_save_sample_idx + fid_samples.shape[0]) % time0_bank.shape[0],
+                    (time0_save_sample_idx + time0_samples.shape[0]) % time0_bank.shape[0],
                 ),
             )
-            fid_save_sample_idx += fid_samples.shape[0]
+            time0_save_sample_idx += time0_samples.shape[0]
             time0_bank[fid_slice] = inv_data_transform(
-                fid_samples[: (fid_slice.stop - fid_slice.start)], args.data_transform
+                time0_samples[: (fid_slice.stop - fid_slice.start)], args.data_transform
             )
 
             meters["loss"].update(loss.item(), args.batch_size)
