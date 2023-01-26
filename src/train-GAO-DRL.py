@@ -115,7 +115,7 @@ def p_sample_langevin(
 
     y_t = torch.autograd.Variable(x_tp1.clone(), requires_grad=True)
 
-    def log_prob(net, y_t, t, x_tp1, b0, sigmas_tp1, is_recovery):
+    def neg_log_prob(net, y_t, t, x_tp1, b0, sigmas_tp1, is_recovery):
         potentials = net.energy_output(y_t, t).squeeze() / b0.squeeze()
         assert len(potentials.shape) == 1
         return potentials + torch.sum(
@@ -123,7 +123,7 @@ def p_sample_langevin(
         )
 
     for _ in torch.arange(num_steps):
-        log_p_y = log_prob(
+        log_p_y = neg_log_prob(
             net, y_t, t, x_tp1, step_size_square, sigmas_tp1, is_recovery_for_x_tp1
         )
 
