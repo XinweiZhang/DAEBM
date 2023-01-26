@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sn
 import torch
 
-from lib.diffusion import MSGS_sampling
+from lib.diffusion import MGMS_sampling
 from lib.train import save_checkpoint
 from lib.utils import imshow, inv_data_transform, make_figure_grid
 
@@ -166,11 +166,11 @@ def daebm_write_tensorboard(
     ):
         longrun_init_samples = rep_imgs
         longrun_init_labels = torch.zeros(rep_imgs.shape[0]).long()
-        longrun_images, longrun_labels, acpt_rate, _ = MSGS_sampling(
+        longrun_images, longrun_labels, acpt_rate, _ = MGMS_sampling(
             net,
             longrun_init_samples.to(device),
             longrun_init_labels.to(device),
-            100,
+            100000,
             init_step_size,
             reject=is_reject,
         )
@@ -245,7 +245,7 @@ def daebm_write_tensorboard(
         ) = replay_buffer.sample_buffer(
             n_samples=20, reinit_probs=args.reinit_probs, deterministic=True,
         )
-        _, _, acpt_rate, path_pool = MSGS_sampling(
+        _, _, acpt_rate, path_pool = MGMS_sampling(
             net,
             init_samples_print.to(device),
             init_labels_print.to(device),

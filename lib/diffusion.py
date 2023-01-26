@@ -71,7 +71,7 @@ def q_sample(x_0, t, alphas_bar_sqrt, alphas_bar_sqrt_comp, noise=None):
     return x_t
 
 
-def MSGS_sampling(
+def MGMS_sampling(
     net, x, t, num_steps, init_step_size, reject=False, record_path=False,
 ):
     """
@@ -161,7 +161,7 @@ def p_sample_langevin_progressive(
     x_neg = torch.zeros((len(init_step_size), num,) + noise.shape[1:])
     # is_accepted_summary = tf.constant(0.)
     for t in torch.arange(len(init_step_size)).flip(0):
-        x_t_neg, t_neg, acpt_rate, _ = MSGS_sampling(
+        x_t_neg, t_neg, acpt_rate, _ = MGMS_sampling(
             net,
             x_t_neg.to(device),
             t.repeat(num).long().to(device),

@@ -18,7 +18,7 @@ sys.path.append(cwd)
 
 try:
     from lib.config import add_daebm_parser
-    from lib.diffusion import (MSGS_sampling, adjust_step_size_given_acpt_rate,
+    from lib.diffusion import (MGMS_sampling, adjust_step_size_given_acpt_rate,
                                make_sigma_schedule, q_sample,
                                q_sample_progressive)
     from lib.libtoy import (ToyDataset, plot_decision_surface,
@@ -226,7 +226,7 @@ def main(args):
                 n_samples=args.batch_size, reinit_probs=args.reinit_probs,
             )
 
-            x_t_neg, t_neg, acpt_rate, _ = MSGS_sampling(
+            x_t_neg, t_neg, acpt_rate, _ = MGMS_sampling(
                 net,
                 init_x_t_neg.to(device),
                 init_t_neg.to(device),

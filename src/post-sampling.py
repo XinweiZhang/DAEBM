@@ -1,12 +1,12 @@
-import os
-import sys
 import argparse
 import json
-import numpy as np
 import logging
+import os
 import shutil
-import matplotlib.pyplot as plt
+import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
 cwd = os.getcwd()
@@ -14,9 +14,10 @@ sys.path.append(cwd)
 
 try:
     from lib.config import add_daebm_parser
-    from lib.diffusion import (make_sigma_schedule, MSGS_sampling)
+    from lib.diffusion import MGMS_sampling, make_sigma_schedule
     from lib.train import configure_net
-    from lib.utils import (Accumulator, make_figure_grid, imshow, inv_data_transform)
+    from lib.utils import (Accumulator, imshow, inv_data_transform,
+                           make_figure_grid)
 except ImportError:
     raise
 
@@ -42,12 +43,13 @@ def main(args):
     os.makedirs(os.path.join(exp_dir, "Time0ImagesSim"))
 
     logging.basicConfig(
-        format='%(name)s - %(levelname)s - %(message)s',
+        format="%(name)s - %(levelname)s - %(message)s",
         level=logging.INFO,
-        handlers=[logging.StreamHandler(sys.stdout)])
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
     logger = logging.getLogger("DAEBM (Post Sampling)")
-    formatter = logging.Formatter(fmt='%(name)s - %(levelname)s - %(message)s')
-    fh = logging.FileHandler(filename=f'{exp_dir}/plog.txt', mode='w')
+    formatter = logging.Formatter(fmt="%(name)s - %(levelname)s - %(message)s")
+    fh = logging.FileHandler(filename=f"{exp_dir}/plog.txt", mode="w")
     fh.setLevel(logging.INFO)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
@@ -66,11 +68,12 @@ def main(args):
     logger.info(str(net))
 
     checkpoint = torch.load(
-        pexp_dir + '/saved_models/net_checkpoint.pt', map_location=device)
-    net.load_state_dict(checkpoint['state_dict'])
+        pexp_dir + "/saved_models/net_checkpoint.pt", map_location=device
+    )
+    net.load_state_dict(checkpoint["state_dict"])
     net = net.to(device)
 
-    step_size = checkpoint['step_size']
+    step_size = checkpoint["step_size"]
 
     sigmas, alphas, alphas_bar_sqrt, alphas_bar_comp_sqrt = make_sigma_schedule(
         beta_start=args.diffusion_betas[0],
@@ -78,7 +81,7 @@ def main(args):
         num_diffusion_timesteps=args.num_diffusion_timesteps,
         schedule=args.diffusion_schedule,
     )
-    logger.info("load checkpoint at epoch {}.".format(checkpoint['epoch']))
+    logger.info("load checkpoint at epoch {}.".format(checkpoint["epoch"]))
     logger.info("sigmas:" + str(sigmas))
     logger.info("alphas:" + str(alphas))
     logger.info("alpha_bar_sqrt:" + str(alphas_bar_sqrt))
@@ -94,9 +97,11 @@ def main(args):
         step_size.to(device),
     )
 
-    is_reject = True if (args.mala_reject is True or args.dynamic_sampling is True) else False
+    is_reject = (
+        True if (args.mala_reject is True or args.dynamic_sampling is True) else False
+    )
 
-    time0_bank = torch.randn((0, ) + tuple(args.image_shape))
+    time0_bank = torch.randn((0,) + tuple(args.image_shape))
 
     sampling_chains = args.sampling_chains
     accumulators = {}
@@ -105,10 +110,14 @@ def main(args):
         sampling_chains * (args.num_diffusion_timesteps + 1)
     )
     accumulators["labels_jump"] = Accumulator(sampling_chains)
-    accumulators["labels_jump_mat"] = Accumulator((args.num_diffusion_timesteps + 1) ** 2)
-    accumulators["labels_cum_jump_mat"] = Accumulator((args.num_diffusion_timesteps + 1) ** 2)
+    accumulators["labels_jump_mat"] = Accumulator(
+        (args.num_diffusion_timesteps + 1) ** 2
+    )
+    accumulators["labels_cum_jump_mat"] = Accumulator(
+        (args.num_diffusion_timesteps + 1) ** 2
+    )
 
-    init_x_t_neg = torch.randn((sampling_chains, ) + tuple(args.image_shape))
+    init_x_t_neg = torch.randn((sampling_chains,) + tuple(args.image_shape))
     init_t_neg = torch.ones(sampling_chains).fill_(args.num_diffusion_timesteps).long()
 
     count0 = torch.zeros_like(init_t_neg)
@@ -116,7 +125,7 @@ def main(args):
     traverse_time = torch.zeros(sampling_chains)
     traverse_time_bank = torch.zeros(0)
     for n_iter in range(args.total_iters):
-        x_t_neg, t_neg, acpt_rate, _ = MSGS_sampling(
+        x_t_neg, t_neg, acpt_rate, _ = MGMS_sampling(
             net,
             init_x_t_neg.to(device),
             init_t_neg.to(device),
@@ -127,7 +136,7 @@ def main(args):
 
         accumulators["mala_acpt_rate"].add(1, acpt_rate.nan_to_num())
 
-        count0 += (t_neg == 0)
+        count0 += t_neg == 0
 
         time0_samples_idx = torch.logical_and(count0 == args.stop_a_chain_M, mark0 == 0)
         mark0[time0_samples_idx] = torch.ones_like(mark0[time0_samples_idx])
@@ -177,17 +186,29 @@ def main(args):
             if len(time0_bank) >= 100:
                 figure = make_figure_grid(
                     inv_data_transform(time0_bank[-100:], args.data_transform),
-                    ncol=10, nrow=10, figsize=(8, 8), show=False
+                    ncol=10,
+                    nrow=10,
+                    figsize=(8, 8),
+                    show=False,
                 )
-                figure.savefig(exp_dir + f"/Time0Images/Time0Images_At_{n_iter + 1}.png")
+                figure.savefig(
+                    exp_dir + f"/Time0Images/Time0Images_At_{n_iter + 1}.png"
+                )
             if len(time0_bank) >= 20:
                 imshow(
                     inv_data_transform(time0_bank[-20:], args.data_transform),
-                    ncol=5, save_dir=exp_dir+f"/Time0ImagesSim/Time0Images_At_{n_iter + 1}.png")
+                    ncol=5,
+                    save_dir=exp_dir
+                    + f"/Time0ImagesSim/Time0Images_At_{n_iter + 1}.png",
+                )
 
             figure = make_figure_grid(
-                inv_data_transform(x_t_neg[:100], args.data_transform), t_neg,
-                ncol=10, nrow=10, figsize=(8, 8), show=False
+                inv_data_transform(x_t_neg[:100], args.data_transform),
+                t_neg,
+                ncol=10,
+                nrow=10,
+                figsize=(8, 8),
+                show=False,
             )
             figure.savefig(exp_dir + f"/Images/Images_At_{n_iter + 1}.png")
 
@@ -198,8 +219,12 @@ def main(args):
                 plt.hist(traverse_time_bank.numpy())
                 fig.savefig(exp_dir + f"/TravelTime/TravelTime_At_{n_iter + 1}.png")
                 plt.close()
-                np.savetxt(exp_dir + "/TravelTime/TravelTime.csv",
-                           traverse_time_bank.numpy(), fmt="%d", delimiter=",")
+                np.savetxt(
+                    exp_dir + "/TravelTime/TravelTime.csv",
+                    traverse_time_bank.numpy(),
+                    fmt="%d",
+                    delimiter=",",
+                )
 
             sample_dict = {
                 "samples": x_t_neg,
@@ -217,34 +242,47 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     cli_parser = argparse.ArgumentParser(
-        description='configuration arguments provided at run time from the CLI'
+        description="configuration arguments provided at run time from the CLI"
     )
 
     cli_parser.add_argument(
-        '-hm', '--help_more',
-        dest='help_more',
+        "-hm",
+        "--help_more",
+        dest="help_more",
         action="store_true",
         default=False,
-        help='more help on the running parameters',
+        help="more help on the running parameters",
     )
 
-    cli_parser.add_argument("--main_dir", type=str, default="./svhn",
-                            help="directory of the experiment")
+    cli_parser.add_argument(
+        "--main_dir", type=str, default="./svhn", help="directory of the experiment"
+    )
 
-    cli_parser.add_argument("--pexp_dir", type=str, default=None,
-                            help="directory of the plot experiment")
+    cli_parser.add_argument(
+        "--pexp_dir", type=str, default=None, help="directory of the plot experiment"
+    )
 
-    cli_parser.add_argument("--total_iters", type=int, default=10000,
-                            help="total iterations/transitions of MGMS")
+    cli_parser.add_argument(
+        "--total_iters",
+        type=int,
+        default=10000,
+        help="total iterations/transitions of MGMS",
+    )
 
-    cli_parser.add_argument("--sampling_chains", type=int, default=100,
-                            help="sampling chains in parallel")
+    cli_parser.add_argument(
+        "--sampling_chains", type=int, default=100, help="sampling chains in parallel"
+    )
 
-    cli_parser.add_argument("--stop_a_chain_M",  type=int, default=50,
-                            help="stopping creterion when reach 0 for M times")
+    cli_parser.add_argument(
+        "--stop_a_chain_M",
+        type=int,
+        default=50,
+        help="stopping creterion when reach 0 for M times",
+    )
 
-    cli_parser.add_argument("--renew_chains", default=False,
-                            action="store_true", help="whether renew chain")
+    cli_parser.add_argument(
+        "--renew_chains", default=False, action="store_true", help="whether renew chain"
+    )
     args, unknown = cli_parser.parse_known_args()
     add_parser = add_daebm_parser()
     parser = argparse.ArgumentParser(parents=[cli_parser, add_parser], add_help=False)
@@ -255,7 +293,7 @@ if __name__ == "__main__":
     pexp_dir = os.path.join(args.main_dir, args.pexp_dir)
 
     if pexp_dir is not None:
-        with open(pexp_dir + '/hparams.json', 'r') as myfile:
+        with open(pexp_dir + "/hparams.json", "r") as myfile:
             data = myfile.read()
             hparams = json.loads(data)
 
