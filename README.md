@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 ## Usage
 ### Image experiments on MNIST and FashionMNIST
-Set `--main_dir` to be `./mnist` or `./fashionmnist` to conduct experiments on **MNIST** or **FashionMNIST**. Datasets will be automatically downloaded. The following commands are examples to run differeent methods on **MNIST**.
+Set `--main_dir` to be `./mnist` or `./fashionmnist` to conduct experiments on **MNIST** or **FashionMNIST**. Datasets will be automatically downloaded. The following commands are examples to run different methods on **MNIST**.
 #### DAEBM
 ##### Training
 ```angular2
