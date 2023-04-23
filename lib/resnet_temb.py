@@ -354,10 +354,6 @@ class ResNetTemb(nn.Module):
         features, temb_final = self.features(x, t)
         h = features * temb_final
         h = torch.sum(h, 1)
-        # A historical bug due to following implementation in the repo recovery_likelihood.
-        # It should be fixed by the folliowing two lines. Will be done in later version
-        # h = self.normalize_last(h)
-        # h = self.last(h).squeeze()
 
         return h
 
