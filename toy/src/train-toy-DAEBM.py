@@ -22,7 +22,7 @@ try:
                                make_sigma_schedule, q_sample,
                                q_sample_progressive)
     from lib.libtoy import (ToyDataset, plot_decision_surface,
-                            plot_diffusion_densities_along_a_line)
+                            plot_diffusion_potentials_along_a_line)
     from lib.sampler import ReplayBuffer
     from lib.train import (configure_net, configure_optimizer,
                            configure_scheduler, initialize_net,
@@ -420,7 +420,7 @@ def main(args):
                 writer.add_figure("Diffusion ReplayBuffer", fig, global_step=epoch)
                 plt.close()
 
-                density_along_a_line = plot_diffusion_densities_along_a_line(
+                density_along_a_line = plot_diffusion_potentials_along_a_line(
                     q, net, device, args.num_diffusion_timesteps + 1
                 )
 

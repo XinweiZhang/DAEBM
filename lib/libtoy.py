@@ -234,6 +234,47 @@ def plot_density_along_a_line(
     return fig
 
 
+def plot_diffusion_potentials_along_a_line(q, net, device, num_diffusion_timesteps=1):
+
+    fig, ax = plt.subplots(num_diffusion_timesteps, 1, figsize=(50, 4*num_diffusion_timesteps))
+    for idx in range(num_diffusion_timesteps):
+        if isinstance(q, list):
+            yy = torch.arange(0.005, 1.2*q[idx].plot_val_max, 0.01).unsqueeze(1)
+            yy = torch.cat([-yy.flip(0), yy], 0)
+        else:
+            yy = torch.arange(0.005, 1.2*q.plot_val_max, 0.01).unsqueeze(1)
+            yy = torch.cat([-yy.flip(0), yy], 0)
+
+        data = torch.cat([torch.zeros_like(yy), yy], 1).view(-1, 2)
+
+        learned_potentials = net.energy_output(
+            data.to(device), torch.zeros(data.shape[0]).fill_(idx).long().to(device)).detach().cpu()
+
+        learned_potentials_normalized = learned_potentials - learned_potentials.min()
+
+        # bin_area = (yy[0] - yy[1])**2
+        # densities = densities / (bin_area * sum(densities))
+        if isinstance(q, list):
+            true_densities = torch.tensor([q[idx].true_density(data[i].squeeze()) for i in torch.arange(len(data))])
+        else:
+            true_densities = torch.tensor([q.true_density(data[i].squeeze()) for i in torch.arange(len(data))])
+        true_potential = -true_densities.log()
+        true_potential_normalized = true_potential - true_potential.min()
+
+        ax[idx].plot(yy, true_potential_normalized, linewidth=2, markersize=12, label="True")
+        ax[idx].plot(yy, learned_potentials_normalized.numpy(), linewidth=2, markersize=12, label="Learned")
+        ax[idx].set_ylim([-learned_potentials_normalized.numpy().max()*0.05, learned_potentials_normalized.numpy().max()*1.05])
+        ax[idx].set_title("Normalized Potential Time " + str(idx))
+
+        handles, labels = ax[idx].get_legend_handles_labels()
+        fig.legend(handles, labels, loc='lower right', bbox_to_anchor=(1.15, 0.1))
+    plt.tight_layout()
+    # plt.show()
+    plt.close()
+
+    return fig
+
+
 def plot_diffusion_densities_along_a_line(q, net, device, num_diffusion_timesteps=1):
 
     fig, ax = plt.subplots(
