@@ -118,6 +118,13 @@ def main(args):
     net = configure_net(args)
     logger.info(str(net))
     net = initialize_net(net, args.net_init_method).to(device)
+    net = torch.compile(net, mode='max-autotune')
+
+    logger.removeHandler(fh)
+    fh = logging.FileHandler(filename=f"{exp_dir}/log.txt", mode="a")
+    fh.setLevel(logging.INFO)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
     "Optimizer Configuration"
     optimizer = configure_optimizer(
