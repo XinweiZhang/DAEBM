@@ -84,17 +84,17 @@ class ToyModel(nn.Module):
 
 
 class ToyTembModel(nn.Module):
-    def __init__(self, n_class=1, act_func="SiLU"):
+    def __init__(self, n_class=1, act_func="SiLU", hidden_num=128):
         super().__init__()
-        self.ch = 128
-        self.temb_ch = 128
-        self.lin1 = nn.Linear(2, 128)
-        self.lin2 = nn.Linear(128, 128)
-        self.lin3 = nn.Linear(128, 128)
-        self.lin4 = nn.Linear(128, 1)
-        self.temb_proj1 = nn.Linear(self.temb_ch, 128)
-        self.temb_proj2 = nn.Linear(self.temb_ch, 128)
-        self.temb_proj3 = nn.Linear(self.temb_ch, 128)
+        self.ch = hidden_num
+        self.temb_ch = hidden_num
+        self.lin1 = nn.Linear(2, hidden_num)
+        self.lin2 = nn.Linear(hidden_num, hidden_num)
+        self.lin3 = nn.Linear(hidden_num, hidden_num)
+        self.lin4 = nn.Linear(hidden_num, 1)
+        self.temb_proj1 = nn.Linear(self.temb_ch, hidden_num)
+        self.temb_proj2 = nn.Linear(self.temb_ch, hidden_num)
+        self.temb_proj3 = nn.Linear(self.temb_ch, hidden_num)
 
         self.act_func = get_act_func_by_name(act_func)
         self.temb = nn.Module()

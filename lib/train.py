@@ -79,8 +79,14 @@ def configure_net(args):
             conv_shortcut=args.use_convshortcut,
             resamp_with_conv=args.resamp_with_conv,
         )
-    elif args.model_structure == "ToyTembModel":
-        net = ToyTembModel(args.n_class, act_func=args.model_act_func,)
+    elif args.model_structure.casefold().startswith("ToyTembModel".casefold()):
+        net_params = [
+            int(_)
+            for _ in re.findall(
+                r"[-+]?\d*\.\d+|\d+", args.model_structure.replace("ToyTembModel", "")
+            )
+        ]
+        net = ToyTembModel(args.n_class, act_func=args.model_act_func, hidden_num=net_params[0])
     elif args.model_structure == "ToyModel":
         net = ToyModel(n_output=args.n_class, act_func=args.model_act_func,)
     else:
